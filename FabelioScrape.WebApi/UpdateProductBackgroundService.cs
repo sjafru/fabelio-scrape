@@ -60,7 +60,13 @@ namespace FabelioScrape.WebApi
 
                 var appBaseUrl = config.GetValue<string>("CurrentHost");
                 var syncTime = string.Format("{0:s}{0:zzz}", DateTime.Now);
-                var client = clientFactory.CreateClient();
+
+                var httpClientHandler = new System.Net.Http.HttpClientHandler();
+
+                // Return `true` to allow certificates that are untrusted/invalid
+                httpClientHandler.ServerCertificateCustomValidationCallback = System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                var client = new HttpClient(httpClientHandler);
+
                 client.BaseAddress = new Uri(appBaseUrl);
                 client.PostAsync("/products/sync?syncTime="+syncTime, new StringContent("")).Wait();
             }
