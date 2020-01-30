@@ -40,7 +40,7 @@ namespace FabelioScrape.WebApi
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _timer = new Timer(DoWork, null, TimeSpan.FromSeconds(20), TimeSpan.FromMinutes(1));
+            _timer = new Timer(DoWork, null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(10));
 
             return Task.CompletedTask;
         }
@@ -66,6 +66,7 @@ namespace FabelioScrape.WebApi
                 // Return `true` to allow certificates that are untrusted/invalid
                 httpClientHandler.ServerCertificateCustomValidationCallback = System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
                 var client = new HttpClient(httpClientHandler);
+                client.Timeout = TimeSpan.FromMinutes(2);
 
                 client.BaseAddress = new Uri(appBaseUrl);
                 client.PostAsync("/products/sync?syncTime="+syncTime, new StringContent("")).Wait();

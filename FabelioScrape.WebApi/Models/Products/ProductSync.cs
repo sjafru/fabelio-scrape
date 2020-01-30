@@ -56,7 +56,7 @@ namespace FabelioScrape.Models.Products
         private async Task<string[]> GetImageUrls()
         {
             var node = await _readHtml.SelectNodesAsync("(//img[contains(@class,'fotorama__img')])");
-            return node.Select(o => o.GetAttributeValue("src", "")).ToArray();
+            return node.Any() ? node.Select(o => o.GetAttributeValue("src", "")).ToArray() : new string[]{};
         }
 
         private async Task<string> GetSubTitle()

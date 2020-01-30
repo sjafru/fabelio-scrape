@@ -2,6 +2,7 @@
 using HtmlAgilityPack;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.IO;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace FabelioScrape.Scraper
                 using (var driver = new ChromeDriver(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)))
                 {
                     driver.Navigate().GoToUrl(PageUrl);
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+                    Thread.Sleep(TimeSpan.FromSeconds(20));
                     Document.LoadHtml(driver.PageSource);
 
                     driver.Close();
