@@ -1,10 +1,10 @@
-﻿using FabelioScrape.Web.Scraper;
+﻿using FabelioScrape.Scraper;
 using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Models.Products
+namespace FabelioScrape.Models.Products
 {
     internal class ProductSync
     {
@@ -19,13 +19,13 @@ namespace FabelioScrape.Web.Models.Products
             _entity = entity ?? new Product(Guid.NewGuid());
         }
 
-        public async Task<Product> StartSync()
+        public async Task<Product> StartSync(int minutesInterval = 5)
         {
             _entity.Title = await GetTitle();
             _entity.SubTitle = await GetSubTitle();
             _entity.ImageUrls =  await GetImageUrls();
             _entity.LastSyncAt = DateTime.Now;
-            _entity.NextSyncAt = DateTime.Now.AddMinutes(1);
+            _entity.NextSyncAt = DateTime.Now.AddMinutes(minutesInterval);
             _entity.Description = await GetDescriptionHtmlEncode();
             _entity.FinalPrice = await GetFinalPrice();
             _entity.OldPrice = await GetOldPrice();
@@ -50,7 +50,7 @@ namespace FabelioScrape.Web.Models.Products
         {
             var node = await _readHtml.SingleNodeAsync("(//div[contains(@id,'description')])[1]");
 
-            return System.Web.HttpUtility.HtmlEncode(node.InnerHtml);
+            return System.Net.WebUtility.HtmlEncode(node.InnerHtml);
         }
 
         private async Task<string[]> GetImageUrls()

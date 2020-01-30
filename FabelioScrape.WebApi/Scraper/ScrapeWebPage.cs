@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Scraper
+namespace FabelioScrape.Scraper
 {
     public class ScrapeWebPage : IScrapeWebPage
     {

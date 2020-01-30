@@ -1,9 +1,10 @@
-﻿using FabelioScrape.Web.Infrastructure;
-using FabelioScrape.Web.Models;
-using FabelioScrape.Web.Models.Products;
+﻿using FabelioScrape.Infrastructure;
+using FabelioScrape.Models;
+using FabelioScrape.Models.Products;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,7 +14,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Controllers
+namespace FabelioScrape.Controllers
 {
     [ApiController]
     [Route("products")]
@@ -26,8 +27,9 @@ namespace FabelioScrape.Web.Controllers
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
         private readonly IServiceProvider _provider;
+        private readonly IConfiguration _appSettings;
 
-        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepo, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork, IMemoryCache cache, IServiceProvider provider)
+        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepo, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork, IMemoryCache cache, IServiceProvider provider, IConfiguration appSettings)
         {
             _logger = logger;
             _productRepo = productRepo;
@@ -36,37 +38,7 @@ namespace FabelioScrape.Web.Controllers
             _httpClient = _clientFactory.CreateClient();
             _cache = cache;
             _provider = provider;
-        }
-
-        const string SYNC_RUNNER_KEY = "SYNC_RUNNER";
-        public IReadOnlyList<string> ProductInRunners => _cache.GetOrCreate(SYNC_RUNNER_KEY, c => {
-            return new List<string>();
-        });
-
-        private Task AddProductToRunner(string productId)
-        {
-            var runners = ProductInRunners.ToList();
-            if (!runners.Contains(productId))
-            {
-                runners.Add(productId);
-            }
-
-            _cache.Set(SYNC_RUNNER_KEY, runners);
-
-            return Task.CompletedTask;
-        }
-
-        private Task RemoveProductFromRunner(string productId)
-        {
-            var runners = ProductInRunners.ToList();
-            if (runners.Contains(productId))
-            {
-                runners.Remove(productId);
-            }
-
-            _cache.Set(SYNC_RUNNER_KEY, runners);
-
-            return Task.CompletedTask;
+            _appSettings = appSettings;
         }
 
         [HttpGet]
@@ -87,7 +59,7 @@ namespace FabelioScrape.Web.Controllers
             if (validateResult is BadRequestObjectResult)
                 return validateResult;
 
-            var product = await new ProductSync(fabelioProductURL, _httpClient, enableUrlValidation: false).StartSync();
+            var product = await new ProductSync(fabelioProductURL, _httpClient, enableUrlValidation: false).StartSync(IntervalProductRecordedInMinutes);
             product.LastSyncStatus = pageResponse.StatusCode;
 
             _productRepo.ProductSet.Add(product);
@@ -95,57 +67,6 @@ namespace FabelioScrape.Web.Controllers
             await _unitOfWork.SaveChangesAsync();
 
             return Reply($"Product has been created");
-        }
-
-        private async Task<Tuple<ActionResult,HttpResponseMessage>> Validate(string fabelioProductURL, string scenario = "new-product")
-        {
-            Uri uriResult;
-            bool isUriValid = Uri.TryCreate(fabelioProductURL, UriKind.Absolute, out uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
-
-            bool isFabelioSite = uriResult.Host.Contains("fabelio");
-
-            if (string.IsNullOrEmpty(fabelioProductURL) || !isUriValid || !isFabelioSite)
-                return new Tuple<ActionResult, HttpResponseMessage> (ReplyError("Invalid Product Url"), null);
-
-            if(scenario == "new-product")
-            {
-                if (_productRepo.ProductSet.AsNoTracking().Any(o => o.PageUrl == fabelioProductURL))
-                    return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Product Already Exists"), null);
-            }
-            else if(scenario == "update-product")
-            {
-                if (!_productRepo.ProductSet.AsNoTracking().Any(o => o.PageUrl == fabelioProductURL))
-                    return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Product Not Exists"), null);
-            }
-            
-            var pageResponse = await _httpClient.GetAsync(fabelioProductURL);
-            if (!AcceptedStatusCodes.Contains(pageResponse.StatusCode))
-            {
-                return new Tuple<ActionResult, HttpResponseMessage>(ReplyError(pageResponse.ReasonPhrase), null);
-            }
-
-            return new Tuple<ActionResult, HttpResponseMessage>(Ok(), pageResponse);
-        }
-
-        private ActionResult ReplyError(string message)
-        {
-            return BadRequest(new
-            {
-                errorMessage = message,
-                success = false,
-                timestamp = string.Format("{0:s}{0:zzz}", DateTime.Now)
-            });
-        }
-
-        private ActionResult Reply(string message, object data = null)
-        {
-            return Ok(new { 
-                success = true,
-                message,
-                timestamp = string.Format("{0:s}{0:zzz}", DateTime.Now),
-                data
-            });
         }
 
         [HttpPut]
@@ -163,7 +84,7 @@ namespace FabelioScrape.Web.Controllers
             else
                 await AddProductToRunner(product.Id.ToString());
 
-            await new ProductSync(fabelioProductURL, _httpClient, entity: product, enableUrlValidation: false).StartSync();
+            await new ProductSync(fabelioProductURL, _httpClient, entity: product, enableUrlValidation: false).StartSync(IntervalProductRecordedInMinutes);
 
             product.LastSyncStatus = pageResponse.StatusCode;
 
@@ -197,7 +118,7 @@ namespace FabelioScrape.Web.Controllers
                             await AddProductToRunner(p.id.ToString());
 
                         var product = productRepo.ProductSet.Find(p.id);
-                        await new ProductSync(p.url, httpClient, product).StartSync();
+                        await new ProductSync(p.url, httpClient, product).StartSync(IntervalProductRecordedInMinutes);
 
                         productRepo.ProductSet.Update(product);
 
@@ -210,5 +131,91 @@ namespace FabelioScrape.Web.Controllers
 
             return await Task.FromResult(Reply("Successfully Sync"));
         }
+
+        const string SYNC_RUNNER_KEY = "SYNC_RUNNER";
+
+        int IntervalProductRecordedInMinutes => _appSettings.GetValue<int>("Fabelio:IntervalProductRecordedInMinutes");
+
+        IReadOnlyList<string> ProductInRunners => _cache.GetOrCreate(SYNC_RUNNER_KEY, c => {
+            return new List<string>();
+        });
+
+        private Task AddProductToRunner(string productId)
+        {
+            var runners = ProductInRunners.ToList();
+            if (!runners.Contains(productId))
+            {
+                runners.Add(productId);
+            }
+
+            _cache.Set(SYNC_RUNNER_KEY, runners);
+
+            return Task.CompletedTask;
+        }
+
+        private Task RemoveProductFromRunner(string productId)
+        {
+            var runners = ProductInRunners.ToList();
+            if (runners.Contains(productId))
+            {
+                runners.Remove(productId);
+            }
+
+            _cache.Set(SYNC_RUNNER_KEY, runners);
+
+            return Task.CompletedTask;
+        }
+        private async Task<Tuple<ActionResult, HttpResponseMessage>> Validate(string fabelioProductURL, string scenario = "new-product")
+        {
+            Uri uriResult;
+            bool isUriValid = Uri.TryCreate(fabelioProductURL, UriKind.Absolute, out uriResult)
+                && (uriResult.Scheme == Uri.UriSchemeHttps || uriResult.Scheme == Uri.UriSchemeHttp);
+
+            bool isFabelioSite = uriResult.Host.Contains("fabelio");
+
+            if (string.IsNullOrEmpty(fabelioProductURL) || !isUriValid || !isFabelioSite)
+                return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Invalid Product Url"), null);
+
+            if (scenario == "new-product")
+            {
+                if (_productRepo.ProductSet.AsNoTracking().Any(o => o.PageUrl == fabelioProductURL))
+                    return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Product Already Exists"), null);
+            }
+            else if (scenario == "update-product")
+            {
+                if (!_productRepo.ProductSet.AsNoTracking().Any(o => o.PageUrl == fabelioProductURL))
+                    return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Product Not Exists"), null);
+            }
+
+            var pageResponse = await _httpClient.GetAsync(fabelioProductURL);
+            if (!AcceptedStatusCodes.Contains(pageResponse.StatusCode))
+            {
+                return new Tuple<ActionResult, HttpResponseMessage>(ReplyError(pageResponse.ReasonPhrase), null);
+            }
+
+            return new Tuple<ActionResult, HttpResponseMessage>(Ok(), pageResponse);
+        }
+
+        private ActionResult ReplyError(string message)
+        {
+            return BadRequest(new
+            {
+                errorMessage = message,
+                success = false,
+                timestamp = string.Format("{0:s}{0:zzz}", DateTime.Now)
+            });
+        }
+
+        private ActionResult Reply(string message, object data = null)
+        {
+            return Ok(new
+            {
+                success = true,
+                message,
+                timestamp = string.Format("{0:s}{0:zzz}", DateTime.Now),
+                data
+            });
+        }
+
     }
 }

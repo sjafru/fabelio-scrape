@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Infrastructure
+namespace FabelioScrape.Infrastructure
 {
     public interface IUnitOfWork
     {

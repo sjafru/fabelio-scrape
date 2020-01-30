@@ -1,7 +1,7 @@
-﻿using FabelioScrape.Web.Models;
+﻿using FabelioScrape.Models;
 using System;
 
-namespace FabelioScrape.Web.Controllers
+namespace FabelioScrape.Controllers
 {
     public class ProductDto
     {

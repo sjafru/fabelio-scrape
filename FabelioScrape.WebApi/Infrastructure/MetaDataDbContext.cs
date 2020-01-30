@@ -1,9 +1,9 @@
-﻿using FabelioScrape.Web.Models;
+﻿using FabelioScrape.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Infrastructure
+namespace FabelioScrape.Infrastructure
 {
     public class MetaDataDbContext : DbContext, IUnitOfWork
     {

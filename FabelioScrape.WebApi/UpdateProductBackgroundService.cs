@@ -1,20 +1,13 @@
-﻿using FabelioScrape.Web.Infrastructure;
-using FabelioScrape.Web.Models.Products;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
-using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web
+namespace FabelioScrape.WebApi
 {
     public class UpdateProductBackgroundService : BackgroundService
     {

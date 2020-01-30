@@ -1,13 +1,9 @@
-using FabelioScrape.Web.Infrastructure;
-using FabelioScrape.Web.Models.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
 
 namespace FabelioScrape.Web
 {
@@ -23,32 +19,10 @@ namespace FabelioScrape.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<MetaDataDbContext>(c => c.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))).AddScoped<IUnitOfWork>(c => c.GetRequiredService<MetaDataDbContext>());
-
-            services.AddScoped<IProductRepository, ProductRepository>();
-
             services.AddControllersWithViews();
             services.AddHttpClient();
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
-
-            // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
-            });
-
-            //// Add Hangfire services.
-            //services.AddHangfire(configuration => configuration
-            //    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-            //    .UseSimpleAssemblyNameTypeSerializer()
-            //    .UseRecommendedSerializerSettings()
-            //    .UseMemoryStorage());
-
-            //// Add the processing server as IHostedService
-            //services.AddHangfireServer();
-
-            services.AddHostedService<UpdateProductBackgroundService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -79,16 +53,6 @@ namespace FabelioScrape.Web
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "FabelioScrape API V1");
-            });
 
             app.UseEndpoints(endpoints =>
             {

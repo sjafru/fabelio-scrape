@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Models.Products
+namespace FabelioScrape.Models.Products
 {
     public class ProductUseCase : IProductUseCase
     {

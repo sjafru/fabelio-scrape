@@ -1,4 +1,4 @@
-﻿using FabelioScrape.Web.Infrastructure;
+﻿using FabelioScrape.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace FabelioScrape.Web.Models.Products
+namespace FabelioScrape.Models.Products
 {
     public interface IProductRepository
     {

@@ -1,4 +1,4 @@
-namespace FabelioScrape.Web.Scraper
+namespace FabelioScrape.Scraper
 {
     public interface IScrapeWebPage
     {
