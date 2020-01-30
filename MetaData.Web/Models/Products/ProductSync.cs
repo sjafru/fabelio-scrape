@@ -12,10 +12,10 @@ namespace FabelioScrape.Web.Models.Products
         private readonly IReadHtmlContent _readHtml;
         private readonly Product _entity;
 
-        public ProductSync(string productUrl, HttpClient httpClient, Product entity = null)
+        public ProductSync(string productUrl, HttpClient httpClient, Product entity = null, bool enableUrlValidation = true)
         {
             _productUrl = productUrl;
-            _readHtml = new ScrapeWebPage(httpClient).ReadHtml(productUrl);
+            _readHtml = new ScrapeWebPage(httpClient).ReadHtml(productUrl, enableUrlValidation);
             _entity = entity ?? new Product(Guid.NewGuid());
         }
 
