@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FabelioScrape.Web.Migrations
 {
     [DbContext(typeof(MetaDataDbContext))]
-    [Migration("20200130023410_Initial")]
-    partial class Initial
+    [Migration("20200130064015_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -35,11 +35,14 @@ namespace FabelioScrape.Web.Migrations
                         .HasColumnType("TEXT")
                         .HasMaxLength(1000);
 
-                    b.Property<DateTimeOffset>("LastSyncAt")
+                    b.Property<DateTime>("LastSyncAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("LastSyncStatus")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("NextSyncAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("OldPrice")
                         .HasColumnType("INTEGER");

@@ -3,6 +3,8 @@ using FabelioScrape.Web.Models;
 using FabelioScrape.Web.Models.Products;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,7 @@ using System.Threading.Tasks;
 namespace FabelioScrape.Web.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("products")]
     public class ProductsController : ControllerBase
     {
         private readonly ILogger<ProductsController> _logger;
@@ -22,14 +24,49 @@ namespace FabelioScrape.Web.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpClientFactory _clientFactory;
         private readonly HttpClient _httpClient;
+        private readonly IMemoryCache _cache;
+        private readonly IServiceProvider _provider;
 
-        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepo, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork)
+        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepo, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork, IMemoryCache cache, IServiceProvider provider)
         {
             _logger = logger;
             _productRepo = productRepo;
             _unitOfWork = unitOfWork;
             _clientFactory = clientFactory;
             _httpClient = _clientFactory.CreateClient();
+            _cache = cache;
+            _provider = provider;
+        }
+
+        const string SYNC_RUNNER_KEY = "SYNC_RUNNER";
+        public IReadOnlyList<string> ProductInRunners => _cache.GetOrCreate(SYNC_RUNNER_KEY, c => {
+            return new List<string>();
+        });
+
+        private Task AddProductToRunner(string productId)
+        {
+            var runners = ProductInRunners.ToList();
+            if (!runners.Contains(productId))
+            {
+                runners.Add(productId);
+            }
+
+            _cache.Set(SYNC_RUNNER_KEY, runners);
+
+            return Task.CompletedTask;
+        }
+
+        private Task RemoveProductFromRunner(string productId)
+        {
+            var runners = ProductInRunners.ToList();
+            if (runners.Contains(productId))
+            {
+                runners.Remove(productId);
+            }
+
+            _cache.Set(SYNC_RUNNER_KEY, runners);
+
+            return Task.CompletedTask;
         }
 
         [HttpGet]
@@ -119,7 +156,12 @@ namespace FabelioScrape.Web.Controllers
             if (validateResult is BadRequestObjectResult)
                 return validateResult;
 
-            var product = _productRepo.ProductSet.First(o=>o.PageUrl == fabelioProductURL);
+            var product = _productRepo.ProductSet.First(o => o.PageUrl == fabelioProductURL);
+
+            if (ProductInRunners.Contains(product.Id.ToString()))
+                return Reply($"Product in running for updated");
+            else
+                await AddProductToRunner(product.Id.ToString());
 
             await new ProductSync(fabelioProductURL, _httpClient, entity: product, enableUrlValidation: false).StartSync();
 
@@ -129,7 +171,44 @@ namespace FabelioScrape.Web.Controllers
 
             await _unitOfWork.SaveChangesAsync();
 
+            await RemoveProductFromRunner(product.Id.ToString());
+
             return Reply($"Product has been updated");
+        }
+
+        [HttpPost("sync")]
+        public async Task<ActionResult> Sync(string syncTime)
+        {
+            var productsToUpdate = _productRepo.ProductSet.AsNoTracking().Where(c => c.NextSyncAt < DateTime.Now).Select(s => new { id = s.Id, url = s.PageUrl }).ToList();
+
+            if (productsToUpdate.Any())
+            {
+                var httpClient = _clientFactory.CreateClient();
+                Parallel.ForEach(productsToUpdate, async p =>
+                {
+                    using(var scope = _provider.CreateScope())
+                    {
+                        var productRepo = scope.ServiceProvider.GetRequiredService<IProductRepository>();
+                        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+                        if (ProductInRunners.Contains(p.id.ToString()))
+                            return;
+                        else
+                            await AddProductToRunner(p.id.ToString());
+
+                        var product = productRepo.ProductSet.Find(p.id);
+                        await new ProductSync(p.url, httpClient, product).StartSync();
+
+                        productRepo.ProductSet.Update(product);
+
+                        await unitOfWork.SaveChangesAsync();
+
+                        await RemoveProductFromRunner(product.Id.ToString());
+                    }
+                });
+            }
+
+            return await Task.FromResult(Reply("Successfully Sync"));
         }
     }
 }

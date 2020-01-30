@@ -15,6 +15,8 @@ namespace FabelioScrape.Web.Controllers
             this.PageUrl = entity.PageUrl;
             this.FinalPrice = entity.FinalPrice;
             this.OldPrice = entity.OldPrice;
+            this.LastSyncAt = entity.LastSyncAt;
+            this.NextSyncAt = entity.NextSyncAt;
         }
 
         public Guid Id { get; }
@@ -25,5 +27,7 @@ namespace FabelioScrape.Web.Controllers
         public string[] ImageUrls { get; }
         public int FinalPrice { get; }
         public int OldPrice { get; }
+        public DateTime LastSyncAt { get; }
+        public DateTime NextSyncAt { get; }
     }
 }

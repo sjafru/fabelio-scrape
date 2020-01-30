@@ -25,6 +25,7 @@ namespace FabelioScrape.Web.Models.Products
             _entity.SubTitle = await GetSubTitle();
             _entity.ImageUrls =  await GetImageUrls();
             _entity.LastSyncAt = DateTime.Now;
+            _entity.NextSyncAt = DateTime.Now.AddMinutes(1);
             _entity.Description = await GetDescriptionHtmlEncode();
             _entity.FinalPrice = await GetFinalPrice();
             _entity.OldPrice = await GetOldPrice();

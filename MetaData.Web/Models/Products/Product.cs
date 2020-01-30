@@ -1,11 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace FabelioScrape.Web.Models
 {
@@ -40,7 +37,9 @@ namespace FabelioScrape.Web.Models
         [MaxLength(1000)]
         public string ImageUrls_Json { get; set; }
 
-        public DateTimeOffset LastSyncAt { get; set; }
+        public DateTime LastSyncAt { get; set; }
+
+        public DateTime NextSyncAt { get; set; }
 
         public HttpStatusCode LastSyncStatus { get; set; }
     }

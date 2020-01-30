@@ -1,5 +1,3 @@
-using Hangfire;
-using Hangfire.MemoryStorage;
 using FabelioScrape.Web.Infrastructure;
 using FabelioScrape.Web.Models.Products;
 using Microsoft.AspNetCore.Builder;
@@ -25,13 +23,14 @@ namespace FabelioScrape.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<MetaDataDbContext>(c => c.UseSqlite(Configuration.GetConnectionString("DefaultConnection")))
-                .AddScoped<IUnitOfWork>(c => c.GetRequiredService<MetaDataDbContext>());
+            services.AddDbContext<MetaDataDbContext>(c => c.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))).AddScoped<IUnitOfWork>(c => c.GetRequiredService<MetaDataDbContext>());
 
             services.AddScoped<IProductRepository, ProductRepository>();
 
             services.AddControllersWithViews();
             services.AddHttpClient();
+            services.AddHttpContextAccessor();
+            services.AddMemoryCache();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
@@ -39,15 +38,17 @@ namespace FabelioScrape.Web
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
             });
 
-            // Add Hangfire services.
-            services.AddHangfire(configuration => configuration
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseMemoryStorage());
+            //// Add Hangfire services.
+            //services.AddHangfire(configuration => configuration
+            //    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+            //    .UseSimpleAssemblyNameTypeSerializer()
+            //    .UseRecommendedSerializerSettings()
+            //    .UseMemoryStorage());
 
-            // Add the processing server as IHostedService
-            services.AddHangfireServer();
+            //// Add the processing server as IHostedService
+            //services.AddHangfireServer();
+
+            services.AddHostedService<UpdateProductBackgroundService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -70,8 +71,8 @@ namespace FabelioScrape.Web
                 app.UseHsts();
             }
 
-            app.UseHangfireDashboard();
-            app.UseHangfireServer();
+            //app.UseHangfireDashboard();
+            //app.UseHangfireServer();
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

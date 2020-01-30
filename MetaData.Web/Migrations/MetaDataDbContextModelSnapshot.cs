@@ -33,11 +33,14 @@ namespace FabelioScrape.Web.Migrations
                         .HasColumnType("TEXT")
                         .HasMaxLength(1000);
 
-                    b.Property<DateTimeOffset>("LastSyncAt")
+                    b.Property<DateTime>("LastSyncAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("LastSyncStatus")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("NextSyncAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("OldPrice")
                         .HasColumnType("INTEGER");

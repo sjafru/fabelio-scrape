@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace FabelioScrape.Web.Migrations
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,7 +19,8 @@ namespace FabelioScrape.Web.Migrations
                     FinalPrice = table.Column<int>(nullable: false),
                     OldPrice = table.Column<int>(nullable: false),
                     ImageUrls_Json = table.Column<string>(maxLength: 1000, nullable: true),
-                    LastSyncAt = table.Column<DateTimeOffset>(nullable: false),
+                    LastSyncAt = table.Column<DateTime>(nullable: false),
+                    NextSyncAt = table.Column<DateTime>(nullable: false),
                     LastSyncStatus = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
