@@ -1,3 +1,5 @@
+using System.Net.Http;
+using Flurl.Http.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
@@ -24,10 +26,16 @@ namespace FabelioScrape.Web
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
 
+            services.AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>();
+
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/build";
+            });
+
+            services.Configure<Infrastructure.ApiServiceOption>(c=>{
+                c.ServiceUrl = Configuration.GetValue<string>("ApiServiceUrl");
             });
         }
 

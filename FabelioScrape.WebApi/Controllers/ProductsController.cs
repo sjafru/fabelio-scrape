@@ -122,9 +122,20 @@ namespace FabelioScrape.Controllers
                         {
                             await new ProductSync(p.url, httpClient, product).StartSync(IntervalProductRecordedInMinutes);
                         }
+                        catch (System.Net.Http.HttpRequestException)
+                        {
+                            product.LastSyncStatus = HttpStatusCode.RequestTimeout;
+                            product.LastSyncAt = DateTime.Now;
+                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                        }
                         catch (OpenQA.Selenium.NotFoundException)
                         {
                             product.LastSyncStatus = HttpStatusCode.NotFound;
+                            product.LastSyncAt = DateTime.Now;
+                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                        }
+                        catch(OpenQA.Selenium.WebDriverException){
+                            product.LastSyncStatus = HttpStatusCode.RequestTimeout;
                             product.LastSyncAt = DateTime.Now;
                             product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
                         }

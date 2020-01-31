@@ -6,7 +6,7 @@ const Home = () => (
   <div>
     <h1>Welcome to Fabelio Scraper Page</h1>
     <ul>
-      <li>Product URL should get from <a href='https://www.fabelio.com/' target="_blank">www.fabelio.com</a></li>
+      <li>Product URL should get from <a href='https://www.fabelio.com/' rel="noopener noreferrer" target="_blank">www.fabelio.com</a></li>
     </ul>
 
     <AddFabelioProduct></AddFabelioProduct>

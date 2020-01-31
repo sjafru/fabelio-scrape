@@ -10,7 +10,8 @@ export interface AddFabelioProductState {
 
 export interface ListFabelioProductsState {
     isLoading: boolean;
-    startDateIndex?: number;
+    page?: number;
+    size?: number;
     products: FabelioProduct[];
 }
 
@@ -31,12 +32,14 @@ export interface ResAddFabelioProductAction { type: 'RES_ADD_FABELIO_PRODUCT', p
 
 interface ReqListFabelioProductsAction {
     type: 'REQ_LIST_FABELIO_PRODUCTS';
-    startDateIndex: number;
+    page: number;
+    size: number;
 }
 
 interface ResListFabelioProductsAction {
     type: 'RES_LIST_FABELIO_PRODUCTS';
-    startDateIndex: number;
+    page: number;
+    size: number;
     products: FabelioProduct[];
 }
 
@@ -55,9 +58,9 @@ export const actionCreators = {
         // Only load data if it's something we don't already have (and are not already loading)
         const appState = getState();
         if (appState && appState.addFabelioProduct && productUrl !== appState.addFabelioProduct.productUrl) {
-            fetch(`products`, {
+            fetch(`products?fabelioProductURL=`+productUrl, {
                 method: 'post',
-                body: JSON.stringify({ "fabelioProductURL": productUrl })
+                body: JSON.stringify({})
             })
                 .then(response => response.json() as Promise<FabelioProduct>)
                 .then(data => {
@@ -68,17 +71,17 @@ export const actionCreators = {
         }
     },
     
-    requestListProducts: (startDateIndex: number): AppThunkAction<KnownAction> => (dispatch, getState) => {
+    requestListProducts: (page: number, size: number): AppThunkAction<KnownAction> => (dispatch, getState) => {
         // Only load data if it's something we don't already have (and are not already loading)
         const appState = getState();
-        if (appState && appState.weatherForecasts && startDateIndex !== appState.weatherForecasts.startDateIndex) {
+        if (appState && appState.weatherForecasts && page !== appState.listFabelioProduct?.page) {
             fetch(`products`)
                 .then(response => response.json() as Promise<FabelioProduct[]>)
                 .then(data => {
-                    dispatch({ type: 'RES_LIST_FABELIO_PRODUCTS', startDateIndex: startDateIndex, products: data });
+                    dispatch({ type: 'RES_LIST_FABELIO_PRODUCTS', page: page, size: size, products: data });
                 });
 
-            dispatch({ type: 'REQ_LIST_FABELIO_PRODUCTS', startDateIndex: startDateIndex });
+            dispatch({ type: 'REQ_LIST_FABELIO_PRODUCTS', page: page, size: size });
         }
     }
 };
@@ -114,16 +117,18 @@ export const listFabelioProductReducer: Reducer<ListFabelioProductsState> = (sta
     switch (action.type) {
         case 'REQ_LIST_FABELIO_PRODUCTS':
             return {
-                startDateIndex: action.startDateIndex,
+                page: action.page,
+                size: action.size,
                 products: state.products,
                 isLoading: true
             };
         case 'RES_LIST_FABELIO_PRODUCTS':
             // Only accept the incoming data if it matches the most recent request. This ensures we correctly
             // handle out-of-order responses.
-            if (action.startDateIndex === state.startDateIndex) {
+            if (action.page === state.page) {
                 return {
-                    startDateIndex: action.startDateIndex,
+                    page: action.page,
+                    size: action.size,
                     products: action.products,
                     isLoading: false
                 };
