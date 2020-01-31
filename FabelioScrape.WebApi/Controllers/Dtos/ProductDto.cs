@@ -16,6 +16,7 @@ namespace FabelioScrape.Controllers
             this.FinalPrice = entity.FinalPrice;
             this.OldPrice = entity.OldPrice;
             this.LastSyncAt = entity.LastSyncAt;
+            this.LastSyncStatus = entity.LastSyncStatus.ToString();
             this.NextSyncAt = entity.NextSyncAt;
         }
 
@@ -28,6 +29,7 @@ namespace FabelioScrape.Controllers
         public int FinalPrice { get; }
         public int OldPrice { get; }
         public DateTime LastSyncAt { get; }
+        public string LastSyncStatus { get; }
         public DateTime NextSyncAt { get; }
     }
 }

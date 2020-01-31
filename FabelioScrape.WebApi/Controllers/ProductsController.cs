@@ -107,7 +107,7 @@ namespace FabelioScrape.Controllers
                 var httpClient = _clientFactory.CreateClient();
                 Parallel.ForEach(productsToUpdate, async p =>
                 {
-                    using(var scope = _provider.CreateScope())
+                    using (var scope = _provider.CreateScope())
                     {
                         var productRepo = scope.ServiceProvider.GetRequiredService<IProductRepository>();
                         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
@@ -118,7 +118,16 @@ namespace FabelioScrape.Controllers
                             await AddProductToRunner(p.id.ToString());
 
                         var product = productRepo.ProductSet.Find(p.id);
-                        await new ProductSync(p.url, httpClient, product).StartSync(IntervalProductRecordedInMinutes);
+                        try
+                        {
+                            await new ProductSync(p.url, httpClient, product).StartSync(IntervalProductRecordedInMinutes);
+                        }
+                        catch (OpenQA.Selenium.NotFoundException)
+                        {
+                            product.LastSyncStatus = HttpStatusCode.NotFound;
+                            product.LastSyncAt = DateTime.Now;
+                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                        }
 
                         productRepo.ProductSet.Update(product);
 
@@ -136,7 +145,8 @@ namespace FabelioScrape.Controllers
 
         int IntervalProductRecordedInMinutes => _appSettings.GetValue<int>("Fabelio:IntervalProductRecordedInMinutes");
 
-        IReadOnlyList<string> ProductInRunners => _cache.GetOrCreate(SYNC_RUNNER_KEY, c => {
+        IReadOnlyList<string> ProductInRunners => _cache.GetOrCreate(SYNC_RUNNER_KEY, c =>
+        {
             return new List<string>();
         });
 

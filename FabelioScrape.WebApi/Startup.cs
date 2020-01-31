@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FabelioScrape.Infrastructure;
 using FabelioScrape.Models.Products;
+using FabelioScrape.Scraper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -44,7 +45,6 @@ namespace FabelioScrape.WebApi
             });
 
             services.AddHostedService<UpdateProductBackgroundService>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
