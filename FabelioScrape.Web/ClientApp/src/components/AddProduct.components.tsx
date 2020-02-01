@@ -5,11 +5,11 @@ import { RouteComponentProps } from 'react-router';
 import * as fabelioProducts from '../store/FabelioProducts';
 import { ApplicationState } from '../store';
 
-type AddFabelioProductProps = fabelioProducts.AddFabelioProductState // ... state we've requested from the Redux store
+type AddProductProps = fabelioProducts.AddFabelioProductState // ... state we've requested from the Redux store
   & typeof fabelioProducts.actionCreators // ... plus action creators we've requested
   & RouteComponentProps<{ pageUrl: string }>; // ... plus incoming routing parameters
 
-class AddFabelioProduct extends Component<AddFabelioProductProps, fabelioProducts.AddFabelioProductState> {
+class AddProduct extends Component<AddProductProps, fabelioProducts.AddFabelioProductState> {
   constructor(props: any) {
     super(props);
 
@@ -50,4 +50,4 @@ class AddFabelioProduct extends Component<AddFabelioProductProps, fabelioProduct
 export default connect(
   (state: ApplicationState) => state.addFabelioProduct, // Selects which state properties are merged into the component's props
   fabelioProducts.actionCreators // Selects which action creators are merged into the component's props
-)(AddFabelioProduct as any);
+)(AddProduct as any);

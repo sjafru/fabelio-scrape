@@ -10,9 +10,9 @@ export interface AddFabelioProductState {
 
 export interface ListFabelioProductsState {
     isLoading: boolean;
-    page?: number;
-    size?: number;
-    products: FabelioProduct[];
+    page: number;
+    size: number;
+    products?: FabelioProduct[];
 }
 
 export interface FabelioProduct {
@@ -23,12 +23,26 @@ export interface FabelioProduct {
     description: string;
 }
 
+export interface ServerListReply {
+    data?: FabelioProduct[],
+    success: boolean,
+    message: string,
+    timestamp: string,
+}
+
+export interface ServerReply {
+    data?: FabelioProduct,
+    success: boolean,
+    message: string,
+    timestamp: string,
+}
+
 // -----------------
 // ACTIONS - These are serializable (hence replayable) descriptions of state transitions.
 // They do not themselves have any side-effects; they just describe something that is going to happen.
 
 export interface ReqAddFabelioProductAction { type: 'REQ_ADD_FABELIO_PRODUCT', productUrl: string }
-export interface ResAddFabelioProductAction { type: 'RES_ADD_FABELIO_PRODUCT', productUrl: string, product: FabelioProduct }
+export interface ResAddFabelioProductAction { type: 'RES_ADD_FABELIO_PRODUCT', productUrl: string, product?: FabelioProduct }
 
 interface ReqListFabelioProductsAction {
     type: 'REQ_LIST_FABELIO_PRODUCTS';
@@ -40,7 +54,7 @@ interface ResListFabelioProductsAction {
     type: 'RES_LIST_FABELIO_PRODUCTS';
     page: number;
     size: number;
-    products: FabelioProduct[];
+    products?: FabelioProduct[];
 }
 
 
@@ -58,27 +72,27 @@ export const actionCreators = {
         // Only load data if it's something we don't already have (and are not already loading)
         const appState = getState();
         if (appState && appState.addFabelioProduct && productUrl !== appState.addFabelioProduct.productUrl) {
-            fetch(`products?fabelioProductURL=`+productUrl, {
+            fetch(`products?fabelioProductURL=` + productUrl, {
                 method: 'post',
                 body: JSON.stringify({})
             })
-                .then(response => response.json() as Promise<FabelioProduct>)
+                .then(response => response.json() as Promise<ServerReply>)
                 .then(data => {
-                    dispatch({ type: 'RES_ADD_FABELIO_PRODUCT', productUrl: productUrl, product: data });
+                    dispatch({ type: 'RES_ADD_FABELIO_PRODUCT', productUrl: productUrl, product: data.data });
                 });
 
             dispatch({ type: 'REQ_ADD_FABELIO_PRODUCT', productUrl: productUrl });
         }
     },
-    
+
     requestListProducts: (page: number, size: number): AppThunkAction<KnownAction> => (dispatch, getState) => {
         // Only load data if it's something we don't already have (and are not already loading)
         const appState = getState();
-        if (appState && appState.weatherForecasts && page !== appState.listFabelioProduct?.page) {
-            fetch(`products`)
-                .then(response => response.json() as Promise<FabelioProduct[]>)
+        if (appState && appState.listFabelioProduct && page !== appState.listFabelioProduct.page) {
+            fetch(`products?page=${page-1}&size=${size}`)
+                .then(response => response.json() as Promise<ServerListReply>)
                 .then(data => {
-                    dispatch({ type: 'RES_LIST_FABELIO_PRODUCTS', page: page, size: size, products: data });
+                    dispatch({ type: 'RES_LIST_FABELIO_PRODUCTS', page: page, size: size, products: data.data });
                 });
 
             dispatch({ type: 'REQ_LIST_FABELIO_PRODUCTS', page: page, size: size });
@@ -106,7 +120,7 @@ export const addFabelioProductReducer: Reducer<AddFabelioProductState> = (state:
     }
 };
 
-const unloadedState: ListFabelioProductsState = { products: [], isLoading: false };
+const unloadedState: ListFabelioProductsState = { products: [], page: 0, size: 25, isLoading: false };
 
 export const listFabelioProductReducer: Reducer<ListFabelioProductsState> = (state: ListFabelioProductsState | undefined, incomingAction: Action): ListFabelioProductsState => {
     if (state === undefined) {

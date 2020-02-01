@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AddFabelioProduct from '../components/AddFabelioProduct.components';
+import AddFabelioProduct from '../components/AddProduct.components';
 
 const Home = () => (
   <div>

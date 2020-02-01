@@ -22,28 +22,26 @@ namespace FabelioScrape.Web.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(int page = 0, int size = 25)
         {
-            var result = await $"{_apiOption.Value.ServiceUrl}/products?page={page}&size={size}".GetJsonAsync<Dictionary<string, object>>();
-            return Ok(result);
+            var result = await $"{_apiOption.Value.ServiceUrl}/products?page={page}&size={size}".GetStringAsync();
+            return Content(result, "application/json");
         }
 
         [HttpPost]
         public async Task<ActionResult> Post(string fabelioProductURL)
         {
-
             var result = await $"{_apiOption.Value.ServiceUrl}/products?fabelioProductURL={fabelioProductURL}".PostJsonAsync(new { })
-                .ReceiveJson<Dictionary<string, object>>();
+                .ReceiveString();
 
-            return Ok(result);
+            return Content(result, "application/json");
         }
 
         [HttpPut]
         public async Task<ActionResult> Put(string fabelioProductURL)
         {
-
             var result = await $"{_apiOption.Value.ServiceUrl}/products?fabelioProductURL={fabelioProductURL}".PutJsonAsync(new { })
-                .ReceiveJson<Dictionary<string, object>>();
+                .ReceiveString();
 
-            return Ok(result);
+            return Content(result, "application/json");
         }
     }
 }

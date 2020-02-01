@@ -40,7 +40,7 @@ namespace FabelioScrape.WebApi
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _timer = new Timer(DoWork, null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(10));
+            _timer = new Timer(DoWork, null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30));
 
             return Task.CompletedTask;
         }

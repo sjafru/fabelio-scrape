@@ -28,6 +28,7 @@ namespace FabelioScrape.Controllers
         private readonly IMemoryCache _cache;
         private readonly IServiceProvider _provider;
         private readonly IConfiguration _appSettings;
+        const int MAX_RUNNER_INSTANCE = 7;
 
         public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepo, IHttpClientFactory clientFactory, IUnitOfWork unitOfWork, IMemoryCache cache, IServiceProvider provider, IConfiguration appSettings)
         {
@@ -100,6 +101,9 @@ namespace FabelioScrape.Controllers
         [HttpPost("sync")]
         public async Task<ActionResult> Sync(string syncTime)
         {
+            if(ProductInRunners.Count >= MAX_RUNNER_INSTANCE)
+                return Reply("Waiting available runner");
+
             var productsToUpdate = _productRepo.ProductSet.AsNoTracking().Where(c => c.NextSyncAt < DateTime.Now).Select(s => new { id = s.Id, url = s.PageUrl }).ToList();
 
             if (productsToUpdate.Any())
@@ -126,18 +130,25 @@ namespace FabelioScrape.Controllers
                         {
                             product.LastSyncStatus = HttpStatusCode.RequestTimeout;
                             product.LastSyncAt = DateTime.Now;
-                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                            product.GenNextSync(IntervalProductRecordedInMinutes);
                         }
                         catch (OpenQA.Selenium.NotFoundException)
                         {
                             product.LastSyncStatus = HttpStatusCode.NotFound;
                             product.LastSyncAt = DateTime.Now;
-                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                            product.GenNextSync(IntervalProductRecordedInMinutes);
                         }
-                        catch(OpenQA.Selenium.WebDriverException){
+                        catch (OpenQA.Selenium.WebDriverException)
+                        {
                             product.LastSyncStatus = HttpStatusCode.RequestTimeout;
                             product.LastSyncAt = DateTime.Now;
-                            product.NextSyncAt = DateTime.Now.AddHours(IntervalProductRecordedInMinutes);
+                            product.GenNextSync(IntervalProductRecordedInMinutes);
+                        }
+                        catch (Exception)
+                        {
+                            product.LastSyncStatus = HttpStatusCode.RequestTimeout;
+                            product.LastSyncAt = DateTime.Now;
+                            product.NextSyncAt = DateTime.Now.AddMinutes(IntervalProductRecordedInMinutes);
                         }
 
                         productRepo.ProductSet.Update(product);
@@ -209,9 +220,19 @@ namespace FabelioScrape.Controllers
             }
 
             var pageResponse = await _httpClient.GetAsync(fabelioProductURL);
+            
+            
             if (!AcceptedStatusCodes.Contains(pageResponse.StatusCode))
             {
                 return new Tuple<ActionResult, HttpResponseMessage>(ReplyError(pageResponse.ReasonPhrase), null);
+            }
+
+            var html = new HtmlAgilityPack.HtmlDocument();
+            html.LoadHtml(await pageResponse.Content.ReadAsStringAsync());
+
+            if(html.DocumentNode.SelectSingleNode("(//div[contains(@class,'product media')])[1]") == null)
+            {
+                return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Its not product page"), null);
             }
 
             return new Tuple<ActionResult, HttpResponseMessage>(Ok(), pageResponse);
@@ -221,7 +242,7 @@ namespace FabelioScrape.Controllers
         {
             return BadRequest(new
             {
-                errorMessage = message,
+                message,
                 success = false,
                 timestamp = string.Format("{0:s}{0:zzz}", DateTime.Now)
             });
