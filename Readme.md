@@ -25,7 +25,6 @@ Stack:
 
 ## How It Works
 
-
 - User memasukkan Product Url dari Fabelio.com, dihalaman Frontend. Kemudian Frontend akan mengirimkan permintaan Rest ke Backend.
 - Akan ada response error jika url bukan product dari fabelio.com. Dan apabila valid, backend akan menjalankan chrome instance dengan bantuan selenim web driver.
 - Sementara itu Frontend akan berpindah ke halaman product detail, dengan status pending jikalau backend masih melakukan sinkron dengan site fabelio.com.
@@ -40,9 +39,23 @@ Stack:
 
 ## Development
 
-- 
+Buka folder dengan VS Code.
 
-## Run
+Open terminal folder FabelioScrape.WebApi
+Bash Shell
+
+```
+dotnet build && dotnet run
+```
+
+Open terminal folder FabelioScrape.Web
+Bash Shell
+```
+dotnet build && dotnet run
+```
+
+## Deployment
+
 
 
 
