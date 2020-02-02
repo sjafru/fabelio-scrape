@@ -14,6 +14,7 @@ Stack:
 - DotNet Core 3
 - React JS
 - Redux
+- ReactStrap
 
 ### Backend: FabelioScrape.WebApi
 
