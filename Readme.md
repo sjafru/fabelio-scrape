@@ -4,23 +4,31 @@
 
 ## What is Fabelio Scraper
 
-FABELIO SCRAPER adalah sebuah website yang memberikan informasi sederhana dari site Fabelio.com.
+FABELIO SCRAPER adalah website informasi sederhana yang contentnya berasal dari site Fabelio.com.
 Yang terdiri dari aplikasi:
 
 1. Frontend: FabelioScrape.Web
+
 Stack: 
 - DotNet Core 
 - React JS
 - Redux
 
 2. Backend: FabelioScrape.WebApi
+
 Stack: 
-- DotNet Core 
+- DotNet Core dengan Clean Architecture.
 - RestFull
 - WebDriver Chrome Selenium
 
 ## How It Works
 
+
+- User memasukkan Product Url dari Fabelio.com, dihalaman Frontend. Kemudian Frontend akan mengirimkan permintaan Rest ke Backend.
+- Akan ada response error jika url bukan url product dari fabelio.com. Dan apabila valid, backend akan menjalankan chrome instance dengan bantuan selenim web driver.
+- Sementara itu Frontend akan berpindah ke halaman product detail, dengan status pending jikalau backend masih melakukan sinkron dengan site fabelio.com.
+- Agar dapat melihat product-product yang telah di submit, silahkan mengklik menu "Products" pada menu utama.
+- Background Service pada Backend akan menjalankan job sync content perjam atau berdasarkan value konfigurasi.
 
 
 ## Requirements
