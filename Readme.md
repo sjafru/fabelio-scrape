@@ -49,6 +49,11 @@ Bash Shell
 dotnet build && dotnet run
 ```
 
+jika linux
+```
+dotnet build && dotnet run -p FabelioScrape.WebApi -p:WebDriverPlatform=linux64
+```
+
 Open terminal folder FabelioScrape.Web
 Bash Shell
 ```
