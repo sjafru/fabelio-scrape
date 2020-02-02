@@ -38,15 +38,15 @@ namespace FabelioScrape.Controllers
         {
             var localImageDir = $"{currentHost}/images/";
 
-            this.Images = this.ImageUrls.Select(i => i.Replace("https://m2fabelio.imgix.net/catalog/product/cache/", localImageDir)).ToArray();
+            this.Images = this.ImageUrls.Where(c => !c.Contains("thumbnail")).Select(i => i.Replace("https://m2fabelio.imgix.net/catalog/product/cache/", localImageDir)).ToArray();
             return this;
         }
 
         internal ProductDto ShowDescription(bool visible)
         {
-            if(!visible)
+            if (!visible)
                 this.Description = string.Empty;
-                
+
             return this;
         }
     }

@@ -24,8 +24,8 @@ const ProductListItem = (props: ProductListItemProps) => (
             <CardBody>
                 <CardTitle>{props.item.title}</CardTitle>
                 <CardSubtitle>{props.item.subTitle}</CardSubtitle>
-                <CardText>{props.item.oldPrice}</CardText>
-                <CardText>{props.item.finalPrice}</CardText>
+                <CardText>Old Price <del>{props.item.oldPrice.toLocaleString(undefined,{maximumFractionDigits:2})}</del></CardText>
+                <CardText className="font-weight-bold">Final Price {props.item.finalPrice.toLocaleString(undefined,{maximumFractionDigits:2})}</CardText>
                 <Link className="btn btn-info" to={`/product-detail/${props.item.id}`}>Detail</Link>
             </CardBody>
         </Card>

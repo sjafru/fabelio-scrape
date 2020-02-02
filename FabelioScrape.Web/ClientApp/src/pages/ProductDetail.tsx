@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardImg, CardBody, CardTitle, CardSubtitle, CardText, Button } from 'reactstrap';
 import * as fabelioProducts from '../store/FabelioProducts';
 import { ApplicationState } from '../store';
+import ImageCarrousel from '../components/ImageCarrousel.component';
 
 type ProductDetailProps = fabelioProducts.DetailFabelioProductState // ... state we've requested from the Redux store
     & typeof fabelioProducts.actionCreators // ... plus action creators we've requested
@@ -12,6 +13,7 @@ type ProductDetailProps = fabelioProducts.DetailFabelioProductState // ... state
 
 const styles = {
     divCard: {
+        maxWidth: '720px',
         marginBottom: '10px'
     }
 };
@@ -44,7 +46,9 @@ class ProductDetail extends React.PureComponent<ProductDetailProps> {
             <div style={styles.divCard} className="m-2">
                 <Link to="/product-list" className="btn btn-primary">Back</Link>
                 <Card>
-                    <CardImg top width="100%" src={this.props.product.images[0]} alt="Card image cap" />
+                    <ImageCarrousel items={this.props.product.images.map((v) => {
+                        return { src: v, caption: "", altText: "" };
+                    })}></ImageCarrousel>
                     <CardBody>
                         <CardTitle>{this.props.product.title}</CardTitle>
                         <CardSubtitle>{this.props.product.subTitle}</CardSubtitle>
