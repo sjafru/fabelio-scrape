@@ -6,11 +6,11 @@ import { ApplicationState } from '../store';
 import ProductListItem from '../components/ProductListItem.component';
 import { Link } from 'react-router-dom';
 
-type ListFabelioProductsProps = fabelioProducts.ListFabelioProductsState // ... state we've requested from the Redux store
+type ProductListProps = fabelioProducts.ListFabelioProductsState // ... state we've requested from the Redux store
     & typeof fabelioProducts.actionCreators // ... plus action creators we've requested
     & RouteComponentProps<{ page: string, size: string }>; // ... plus incoming routing parameters
 
-class ListFabelioProducts extends React.PureComponent<ListFabelioProductsProps> {
+class ProductList extends React.PureComponent<ProductListProps> {
     // This method is called when the component is first added to the document
     public componentDidMount() {
         this.ensureDataFetched();
@@ -27,7 +27,6 @@ class ListFabelioProducts extends React.PureComponent<ListFabelioProductsProps> 
                 <h1 id="tabelLabel">Weather forecast</h1>
                 <p>This component demonstrates fetching data from the server and working with URL parameters.</p>
                 {this.renderTable()}
-                {this.renderPagination()}
             </React.Fragment>
         );
     }
@@ -48,7 +47,7 @@ class ListFabelioProducts extends React.PureComponent<ListFabelioProductsProps> 
 
     renderTable(): React.ReactNode {
         return (
-            <div>
+            <div className="d-flex p-2 justify-content-between">
                 {(this.props.products || []).map((p: fabelioProducts.FabelioProduct) =>
                     <ProductListItem item={p} key={p.id}></ProductListItem>
                 )}
@@ -58,7 +57,7 @@ class ListFabelioProducts extends React.PureComponent<ListFabelioProductsProps> 
 
     private ensureDataFetched() {
         const page = parseInt(this.props.match.params.page, 10) || 1;
-        const size = parseInt(this.props.match.params.size, 25) || 25;
+        const size = parseInt(this.props.match.params.size, 10) || 25;
         this.props.requestListProducts(page, size);
     }
 
@@ -67,4 +66,4 @@ class ListFabelioProducts extends React.PureComponent<ListFabelioProductsProps> 
 export default connect(
     (state: ApplicationState) => state.listFabelioProduct, // Selects which state properties are merged into the component's props
     fabelioProducts.actionCreators // Selects which action creators are merged into the component's props
-)(ListFabelioProducts as any);
+)(ProductList as any);

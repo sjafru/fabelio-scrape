@@ -26,6 +26,13 @@ namespace FabelioScrape.Web.Controllers
             return Content(result, "application/json");
         }
 
+        [HttpGet("detail")]
+        public async Task<ActionResult> Detail(string id)
+        {
+            var result = await $"{_apiOption.Value.ServiceUrl}/products/{id}".GetStringAsync();
+            return Content(result, "application/json");
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post(string fabelioProductURL)
         {

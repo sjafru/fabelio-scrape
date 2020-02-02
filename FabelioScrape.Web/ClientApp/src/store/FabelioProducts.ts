@@ -15,13 +15,30 @@ export interface ListFabelioProductsState {
     products?: FabelioProduct[];
 }
 
+export interface DetailFabelioProductState {
+    product: FabelioProduct;
+    id: string;
+}
+
 export interface FabelioProduct {
     id: string;
     title: string;
     subTitle: string;
-    imageUrls: Array<string>;
+    images: string[];
+    finalPrice: number;
+    oldPrice: number;
     description: string;
 }
+
+export const DefaultFabelioProduct = {
+    id: '',
+    title: '',
+    subTitle: '',
+    images: [],
+    finalPrice: 0,
+    oldPrice: 0,
+    description: ''
+};
 
 export interface ServerListReply {
     data?: FabelioProduct[],
@@ -57,10 +74,21 @@ interface ResListFabelioProductsAction {
     products?: FabelioProduct[];
 }
 
+interface ReqDetailFabelioProductAction {
+    type: 'REQ_DETAIL_FABELIO_PRODUCT';
+    id: string;
+}
+
+interface ResDetailFabelioProductAction {
+    type: 'RES_DETAIL_FABELIO_PRODUCT';
+    id: string;
+    product?: FabelioProduct;
+}
+
 
 // Declare a 'discriminated union' type. This guarantees that all references to 'type' properties contain one of the
 // declared type strings (and not any other arbitrary string).
-type KnownAction = ReqAddFabelioProductAction | ResAddFabelioProductAction | ReqListFabelioProductsAction | ResListFabelioProductsAction;
+type KnownAction = ReqAddFabelioProductAction | ResAddFabelioProductAction | ReqListFabelioProductsAction | ResListFabelioProductsAction | ReqDetailFabelioProductAction | ResDetailFabelioProductAction;
 
 
 // ----------------
@@ -89,13 +117,26 @@ export const actionCreators = {
         // Only load data if it's something we don't already have (and are not already loading)
         const appState = getState();
         if (appState && appState.listFabelioProduct && page !== appState.listFabelioProduct.page) {
-            fetch(`products?page=${page-1}&size=${size}`)
+            fetch(`products?page=${page - 1}&size=${size}`)
                 .then(response => response.json() as Promise<ServerListReply>)
                 .then(data => {
                     dispatch({ type: 'RES_LIST_FABELIO_PRODUCTS', page: page, size: size, products: data.data });
                 });
 
             dispatch({ type: 'REQ_LIST_FABELIO_PRODUCTS', page: page, size: size });
+        }
+    },
+
+    requestProductDetail: (id: string): AppThunkAction<KnownAction> => (dispatch, getState) => {
+        const appState = getState();
+        if (appState && appState.detailProduct && id !== appState.detailProduct.id) {
+            fetch(`products/detail?id=${id}`)
+                .then(response => response.json() as Promise<ServerReply>)
+                .then(data => {
+                    dispatch({ type: 'RES_DETAIL_FABELIO_PRODUCT', id: id, product: data.data });
+                });
+
+            dispatch({ type: 'REQ_DETAIL_FABELIO_PRODUCT', id: id });
         }
     }
 };
@@ -153,3 +194,22 @@ export const listFabelioProductReducer: Reducer<ListFabelioProductsState> = (sta
     return state;
 };
 
+
+
+export const detalFabelioProductReducer: Reducer<DetailFabelioProductState> = (state: DetailFabelioProductState | undefined, incomingAction: Action): DetailFabelioProductState => {
+    if (state === undefined) {
+        return { id: '', product: DefaultFabelioProduct };
+    }
+
+    const action = incomingAction as KnownAction;
+    switch (action.type) {
+        case 'REQ_DETAIL_FABELIO_PRODUCT':
+            return { id: action.id, product: state.product };
+
+        case 'RES_DETAIL_FABELIO_PRODUCT':
+            return { id: action.id, product: (action.product || DefaultFabelioProduct) };
+            break;
+    }
+
+    return state;
+};

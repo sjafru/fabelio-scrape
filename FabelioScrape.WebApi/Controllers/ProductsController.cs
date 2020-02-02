@@ -47,8 +47,29 @@ namespace FabelioScrape.Controllers
         {
             List<Product> data = await _productRepo.SearchAsync(c => true, page, size);
 
-            return Reply("Product List", data.Select(o => new ProductDto(o)).ToList());
+            var currentHost = _appSettings.GetValue<string>("CurrentHost");
+
+            return Reply("Product List", data.Select(o => new ProductDto(o)
+                .ShowDescription(false)
+                .SetLocalImages(currentHost)).ToList());
         }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<List<ProductDto>>> Get(string id)
+        {
+            Guid productId;
+            bool isGuid = Guid.TryParse(id, out productId);
+            if (!isGuid)
+                return ReplyError("Invalid Product ID " + id);
+
+            var product = await _productRepo.ProductSet.FirstOrDefaultAsync(o=>o.Id == productId);
+            if(product == null)
+                return ReplyError("Invalid Product ID "+ id);
+
+            var currentHost = _appSettings.GetValue<string>("CurrentHost");
+            return Reply("Product Detail", new ProductDto(product).SetLocalImages(currentHost));
+        }
+
 
         private HttpStatusCode[] AcceptedStatusCodes => new HttpStatusCode[] { HttpStatusCode.OK, HttpStatusCode.Accepted };
 
@@ -101,10 +122,12 @@ namespace FabelioScrape.Controllers
         [HttpPost("sync")]
         public async Task<ActionResult> Sync(string syncTime)
         {
-            if(ProductInRunners.Count >= MAX_RUNNER_INSTANCE)
+            if (ProductInRunners.Count >= MAX_RUNNER_INSTANCE)
                 return Reply("Waiting available runner");
 
-            var productsToUpdate = _productRepo.ProductSet.AsNoTracking().Where(c => c.NextSyncAt < DateTime.Now).Select(s => new { id = s.Id, url = s.PageUrl }).ToList();
+            var producerRunners = ProductInRunners.Select(o => Guid.Parse(o));
+
+            var productsToUpdate = _productRepo.ProductSet.AsNoTracking().Where(c => c.NextSyncAt < DateTime.Now && !producerRunners.Contains(c.Id)).Select(s => new { id = s.Id, url = s.PageUrl }).ToList();
 
             if (productsToUpdate.Any())
             {
@@ -148,7 +171,7 @@ namespace FabelioScrape.Controllers
                         {
                             product.LastSyncStatus = HttpStatusCode.RequestTimeout;
                             product.LastSyncAt = DateTime.Now;
-                            product.NextSyncAt = DateTime.Now.AddMinutes(IntervalProductRecordedInMinutes);
+                            product.GenNextSync(IntervalProductRecordedInMinutes);
                         }
 
                         productRepo.ProductSet.Update(product);
@@ -220,8 +243,8 @@ namespace FabelioScrape.Controllers
             }
 
             var pageResponse = await _httpClient.GetAsync(fabelioProductURL);
-            
-            
+
+
             if (!AcceptedStatusCodes.Contains(pageResponse.StatusCode))
             {
                 return new Tuple<ActionResult, HttpResponseMessage>(ReplyError(pageResponse.ReasonPhrase), null);
@@ -230,7 +253,7 @@ namespace FabelioScrape.Controllers
             var html = new HtmlAgilityPack.HtmlDocument();
             html.LoadHtml(await pageResponse.Content.ReadAsStringAsync());
 
-            if(html.DocumentNode.SelectSingleNode("(//div[contains(@class,'product media')])[1]") == null)
+            if (html.DocumentNode.SelectSingleNode("(//div[contains(@class,'product media')])[1]") == null)
             {
                 return new Tuple<ActionResult, HttpResponseMessage>(ReplyError("Its not product page"), null);
             }

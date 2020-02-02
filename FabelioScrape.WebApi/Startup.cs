@@ -60,6 +60,7 @@ namespace FabelioScrape.WebApi
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseStaticFiles();
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();

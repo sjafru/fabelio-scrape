@@ -9,6 +9,7 @@ export interface ApplicationState {
     weatherForecasts: WeatherForecasts.WeatherForecastsState | undefined;
     addFabelioProduct: fabelioProducts.AddFabelioProductState | undefined;
     listFabelioProduct: fabelioProducts.ListFabelioProductsState | undefined;
+    detailProduct: fabelioProducts.DetailFabelioProductState | undefined;
 }
 
 // Whenever an action is dispatched, Redux will update each top-level application state property using
@@ -18,7 +19,8 @@ export const reducers = {
     counter: Counter.reducer,
     weatherForecasts: WeatherForecasts.reducer,
     addFabelioProduct: fabelioProducts.addFabelioProductReducer,
-    listFabelioProduct: fabelioProducts.listFabelioProductReducer
+    listFabelioProduct: fabelioProducts.listFabelioProductReducer,
+    detailProduct: fabelioProducts.detalFabelioProductReducer
 };
 
 // This type can be used as a hint on action creators so that its 'dispatch' and 'getState' params are

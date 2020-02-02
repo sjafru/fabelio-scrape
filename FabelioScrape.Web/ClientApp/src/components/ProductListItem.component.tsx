@@ -1,22 +1,32 @@
 import * as React from 'react';
-import { Card, CardImg, CardBody, CardTitle, CardSubtitle, CardText, Button } from 'reactstrap';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { Card, CardImg, CardBody, CardTitle, CardSubtitle, CardText, Button } from 'reactstrap';
 import { FabelioProduct } from '../store/FabelioProducts';
+
 
 type ProductListItemProps = {
     item: FabelioProduct,
     key: string
 };
 
+const styles = {
+    divCard: {
+        marginBottom: '10px',
+        maxWidth: '400px'
+    }
+};
+
 const ProductListItem = (props: ProductListItemProps) => (
-    <div>
+    <div style={styles.divCard}>
         <Card>
-            <CardImg top width="100%" src={props.item.imageUrls[0]} alt="Card image cap" />
+            <CardImg top width="100%" src={props.item.images[0]} alt="Card image cap" />
             <CardBody>
                 <CardTitle>{props.item.title}</CardTitle>
                 <CardSubtitle>{props.item.subTitle}</CardSubtitle>
-                <CardText dangerouslySetInnerHTML={{ __html: props.item.description }}></CardText>
-                <Button>Detail</Button>
+                <CardText>{props.item.oldPrice}</CardText>
+                <CardText>{props.item.finalPrice}</CardText>
+                <Link className="btn btn-info" to={`/product-detail/${props.item.id}`}>Detail</Link>
             </CardBody>
         </Card>
     </div>
