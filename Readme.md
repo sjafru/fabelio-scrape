@@ -26,7 +26,7 @@ Stack:
 ## How It Works
 
 - User memasukkan Product Url dari Fabelio.com, dihalaman Frontend. Kemudian Frontend akan mengirimkan permintaan Rest ke Backend.
-- Akan ada response error jika url bukan product dari fabelio.com. Dan apabila valid, backend akan menjalankan chrome instance dengan bantuan selenim web driver.
+- Akan ada response error jika url bukan product dari fabelio.com. Dan apabila valid, backend akan menjalankan chrome instance dengan bantuan selenim web driver untuk melakukan sync content & ajax content. Image akan di download dalam static folder "wwwroot/images"
 - Sementara itu Frontend akan berpindah ke halaman product detail, dengan status pending jikalau backend masih melakukan sinkron dengan site fabelio.com.
 - Agar dapat melihat product-product yang telah di submit, silahkan mengklik menu "Products" pada menu utama.
 - Background Service pada Backend akan menjalankan job sync content perjam atau berdasarkan value konfigurasi.
