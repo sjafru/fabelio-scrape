@@ -54,7 +54,7 @@ jika linux
 dotnet build && dotnet run -p FabelioScrape.WebApi -p:WebDriverPlatform=linux64
 ```
 
-Access: [https://localhost:5001/swagger/index.html](https://localhost:5001/swagger/index.html)
+Akses: [https://localhost:5001/swagger/index.html](https://localhost:5001/swagger/index.html)
 
 Open terminal folder FabelioScrape.Web
 Bash Shell
@@ -62,7 +62,7 @@ Bash Shell
 dotnet build && dotnet run
 ```
 
-Access [https://localhost:5003](https://localhost:5003)
+Akses [https://localhost:5003](https://localhost:5003)
 
 ## Deployment
 
