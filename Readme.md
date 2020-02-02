@@ -56,7 +56,14 @@ dotnet build && dotnet run
 
 ## Deployment
 
+### FabelioScrape.WebApi
 
+Harus di deploy dalam container atau virtual machine yang telah terinstall
+- Google Chrome
+- DotNet Core Runtime 3.1 
 
+### FabelioScrape.Web
+
+Dalam linux container atau virtual machine yang telah terinstall DotNet Core Runtime 3.1
 
 ## help
