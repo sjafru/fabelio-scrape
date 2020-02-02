@@ -6,6 +6,8 @@ import { AppThunkAction } from '.';
 
 export interface AddFabelioProductState {
     productUrl: string;
+    replyMessage: string;
+    isValid: boolean;
 }
 
 export interface ListFabelioProductsState {
@@ -59,7 +61,7 @@ export interface ServerReply {
 // They do not themselves have any side-effects; they just describe something that is going to happen.
 
 export interface ReqAddFabelioProductAction { type: 'REQ_ADD_FABELIO_PRODUCT', productUrl: string }
-export interface ResAddFabelioProductAction { type: 'RES_ADD_FABELIO_PRODUCT', productUrl: string, product?: FabelioProduct }
+export interface ResAddFabelioProductAction { type: 'RES_ADD_FABELIO_PRODUCT', productUrl: string, product?: FabelioProduct, replyMessage: string, isValid: boolean }
 
 interface ReqListFabelioProductsAction {
     type: 'REQ_LIST_FABELIO_PRODUCTS';
@@ -106,7 +108,7 @@ export const actionCreators = {
             })
                 .then(response => response.json() as Promise<ServerReply>)
                 .then(data => {
-                    dispatch({ type: 'RES_ADD_FABELIO_PRODUCT', productUrl: productUrl, product: data.data });
+                    dispatch({ type: 'RES_ADD_FABELIO_PRODUCT', productUrl: productUrl, product: data.data, isValid: data.success, replyMessage: data.message });
                 });
 
             dispatch({ type: 'REQ_ADD_FABELIO_PRODUCT', productUrl: productUrl });
@@ -147,15 +149,15 @@ export const actionCreators = {
 
 export const addFabelioProductReducer: Reducer<AddFabelioProductState> = (state: AddFabelioProductState | undefined, incomingAction: Action): AddFabelioProductState => {
     if (state === undefined) {
-        return { productUrl: '' };
+        return { productUrl: '', replyMessage: '', isValid: true };
     }
 
     const action = incomingAction as KnownAction;
     switch (action.type) {
         case 'REQ_ADD_FABELIO_PRODUCT':
-            return { productUrl: state.productUrl };
+            return { productUrl: state.productUrl, replyMessage: '', isValid: true };
         case 'RES_ADD_FABELIO_PRODUCT':
-            return { productUrl: state.productUrl };
+            return { productUrl: action.productUrl, replyMessage: action.replyMessage, isValid: action.isValid };
         default:
             return state;
     }

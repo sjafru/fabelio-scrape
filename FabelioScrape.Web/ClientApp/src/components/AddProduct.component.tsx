@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Button, Form, FormGroup, Label, Input, Container, Row, Col } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Container, Row, Col, FormFeedback } from 'reactstrap';
 import { RouteComponentProps } from 'react-router';
 import * as fabelioProducts from '../store/FabelioProducts';
 import { ApplicationState } from '../store';
@@ -13,7 +13,7 @@ class AddProduct extends Component<AddProductProps, fabelioProducts.AddFabelioPr
   constructor(props: any) {
     super(props);
 
-    this.state = { productUrl: "" };
+    this.state = { productUrl: "", replyMessage: "", isValid: true };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -37,7 +37,10 @@ class AddProduct extends Component<AddProductProps, fabelioProducts.AddFabelioPr
               <Col><Label for="productUrl">Fabelio Product Url</Label></Col>
             </Row>
             <Row>
-              <Col><Input required type="url" name="url" onChange={this.handleChange} value={this.state.productUrl} id="productUrl" placeholder="put a fabelio.com product url" /></Col>
+              <Col>
+                <Input required valid={this.props.isValid} invalid={!this.props.isValid} type="url" name="url" onChange={this.handleChange} value={this.state.productUrl} id="productUrl" placeholder="put a fabelio.com product url" />
+                <FormFeedback tooltip>{this.props.replyMessage}</FormFeedback>
+              </Col>
               <Col><Button>Submit</Button></Col>
             </Row>
           </Container>
