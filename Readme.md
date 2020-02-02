@@ -11,7 +11,7 @@ Yang terdiri dari aplikasi:
 
 Stack: 
 
-- DotNet Core 
+- DotNet Core 3
 - React JS
 - Redux
 
@@ -19,7 +19,7 @@ Stack:
 
 Stack: 
 
-- DotNet Core dengan Clean Architecture.
+- DotNet Core 3 dengan Clean Architecture.
 - RestFull
 - WebDriver Chrome Selenium
 
